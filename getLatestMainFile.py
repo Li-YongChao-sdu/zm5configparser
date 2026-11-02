@@ -1,4 +1,8 @@
-"""从 4399 造梦西游入口页解析并下载当前主文件 main.swf。"""
+"""从 4399 造梦西游入口页解析当前版本化主文件（如 v4780.swf）并下载。
+
+入口页的 main.swf 只是登录外壳，真正的游戏主文件由版本页加载：
+入口页 game_url_arr[5] → v4780d.htm → <param name="movie" value="v4780.swf">。
+"""
 import re
 import urllib.parse
 import urllib.request
@@ -8,35 +12,43 @@ PAGE = 'https://www.4399.com/flash/zmhj.htm?g=5'
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                   '(KHTML, like Gecko) Chrome/120.0 Safari/537.36',
-    'Referer': PAGE,
 }
 
 
-def fetch(url):
-    request = urllib.request.Request(url, headers=HEADERS)
-    with urllib.request.urlopen(request, timeout=30) as response:
+def fetch(url, referer=PAGE):
+    headers = dict(HEADERS)
+    if referer:
+        headers['Referer'] = referer
+    request = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(request, timeout=60) as response:
         return response.read()
 
 
-def resolve_swf_url(html):
-    """入口页用 JS 拼接地址：main.swf?path=<目录>&v=<版本>，需还原完整 query。"""
-    match = re.search(r"'([^']*/main\.swf)", html)
+def game_page_url(html):
+    """game_url_arr[5] 是造梦西游5当前版本的游戏页，如 .../v4780d.htm。"""
+    match = re.search(r"game_url_arr\[5\]\s*=\s*'([^']+)'", html)
     if not match:
-        raise RuntimeError('未在入口页中找到主文件地址')
-    path = match.group(1)
-    directory = path.rsplit('main.swf', 1)[0]
-    suffix = re.search(r"var\s+swf\s*=\s*'[^']*'\s*\+\s*path\s*\+\s*\"([^\"]*)\"", html)
-    tail = suffix.group(1) if suffix else ''
-    dir_url = urllib.parse.urljoin(PAGE, directory)
-    return urllib.parse.urljoin(PAGE, path) + '?path=' + urllib.parse.quote(dir_url, safe=':/') + tail
+        raise RuntimeError('未在入口页中找到 game_url_arr[5]')
+    return match.group(1)
 
 
 def main():
     html = fetch(PAGE).decode('gb2312', 'ignore')
-    swf_url = resolve_swf_url(html)
+    page_url = game_page_url(html)
+    print('版本游戏页：%s' % page_url)
+
+    page = fetch(page_url).decode('gb2312', 'ignore')
+    match = (re.search(r'name="movie"\s+value="([^"]+\.swf)"', page)
+             or re.search(r'src="([^"]+\.swf)"', page))
+    if not match:
+        raise RuntimeError('未在版本游戏页中找到主文件地址')
+
+    swf_url = urllib.parse.urljoin(page_url, match.group(1))
+    name = urllib.parse.urlparse(swf_url).path.rsplit('/', 1)[-1]
     print('主文件地址：%s' % swf_url)
-    data = fetch(swf_url)
-    output = Path('main.swf')
+
+    data = fetch(swf_url, referer=page_url)
+    output = Path(name)
     output.write_bytes(data)
     print('已保存：%s（%d 字节）' % (output.resolve(), len(data)))
 

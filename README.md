@@ -37,29 +37,33 @@ cg_config_out_cg1_<日期>_<序号>/
 
 ### 主文件
 
-入口页（页面内动态加载主 SWF）：
+注意：入口页加载的 `main.swf` 只是登录外壳，不是游戏主文件。真正的游戏主文件是带版本号的文件，例如当前为 `v4780.swf`。
+
+入口页：
 
 ```text
 https://www.4399.com/flash/zmhj.htm?g=5
 ```
 
-当前页面版本的主文件直链（2026-09-24）：
+入口页中的 `game_url_arr[5]` 指向当前版本游戏页：
 
 ```text
-https://www.4399.com/images/zmhj/flash20260924/main.swf?path=https://www.4399.com/images/zmhj/flash20260924/&v=23
+https://sda.4399.com/4399swf/upload_swf/ftp22/csya/20170622/1/v4780d.htm
 ```
 
-通用备用地址：
+游戏页内 `<param name="movie">` 指向当前主文件（2026-11-02 为 v4780）：
 
 ```text
-https://www.4399.com/images/zmhj/flash/main.swf
+https://sda.4399.com/4399swf/upload_swf/ftp22/csya/20170622/1/v4780.swf
 ```
 
-自动获取并保存为 `main.swf`：
+版本号会随游戏更新变化，建议用脚本自动解析并下载，保存为与线上同名的 `v<版本号>.swf`：
 
 ```console
 python getLatestMainFile.py
 ```
+
+脚本流程：入口页 → `game_url_arr[5]` → 版本游戏页 → `<param name="movie">` → 下载主文件。下载时需带版本游戏页作 Referer，否则服务器只返回 23 KB 的域名校验占位 SWF。
 
 ### 配置文件
 
