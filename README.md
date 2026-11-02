@@ -65,6 +65,23 @@ python getLatestMainFile.py
 
 脚本流程：入口页 → `game_url_arr[5]` → 版本游戏页 → `<param name="movie">` → 下载主文件。下载时需带版本游戏页作 Referer，否则服务器只返回 23 KB 的域名校验占位 SWF。
 
+### 反编译主文件（可选）
+
+主文件是 SWF，可用 FFDec（JPEXS Free Flash Decompiler）反编译为 ActionScript 文件：
+
+- 项目仓库：https://github.com/jindrapetrik/jpexs-decompiler
+- 发布下载：https://github.com/jindrapetrik/jpexs-decompiler/releases
+
+GUI 方式：用 FFDec 打开 `v4780.swf`，选择“工具 → 导出 → 导出脚本”，或右键选择导出 AS3。
+
+命令行示例（Windows）：
+
+```console
+ffdec.bat -export script .\as_out .\v4780.swf
+```
+
+导出的 `.as` 文件可用于对照配置表结构；本仓库只解析配置，不修改主文件。
+
 ### 配置文件
 
 配置目录：
