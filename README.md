@@ -33,6 +33,16 @@ python configParser.py
 cg_config_out_cg1_<日期>_<序号>/
 ```
 
+## 示例配置
+
+仓库根目录的 `cg1.swf` 是 2026-10-26 的示例配置（`cg1_20261026_1.swf`，2,708,948 字节），方便离线查看表结构或测试解包：
+
+```console
+python -c "from configParser import unpack; unpack(open('cg1.swf','rb').read(), 'sample_out')"
+```
+
+正常获取本周配置仍请运行 `python getLatestConfig.py`。
+
 ## 初始文件下载地址
 
 ### 主文件
