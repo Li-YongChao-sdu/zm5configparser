@@ -126,6 +126,31 @@ cg1_<YYYYMMDD>_<序号>.swf
 - `Activity.json`
 - `Prop.json`
 
+## 路由抓包备用方案（可选）
+
+反编译或配置表里找不到某个接口时，可用 `route_sniffer` 抓一次真实请求，作为路由查询的备用数据源。抓包工具放在 `tools/route_sniffer/`，配置解析流程不会自动启动它。
+
+```console
+python routeLookup.py --sniff
+```
+
+以管理员权限启动工具，选择游戏进程并抓包；在工具里导出 JSON/JSONL，然后导入并查询：
+
+```console
+python routeLookup.py --import 导出文件.json
+python routeLookup.py --route scene.worldBossHandler
+python routeLookup.py --list
+python routeLookup.py --handlers
+```
+
+导入结果保存在本地 `routes_extra.json`（已在 `.gitignore` 中忽略，不会提交）。导入时会去掉 token、cookie、session、sign 等字段，只保留路由和参数/回包结构。
+
+注意：
+
+- `route_sniffer` 需要管理员权限，依赖 WinDivert 驱动；建议只在测试号或虚拟机使用，避免主号触发反作弊。
+- 工具内置的 `sniffer.crt/sniffer.key` 是它自带的本地抓包证书，仅用于该工具的 TLS 中间人，不要用于其他用途。
+- 本仓库只做离线导入和查询，不会自动启动抓包，也不修改游戏文件。
+
 ## 免责声明
 
 本项目仅用于学习与研究游戏配置结构，不修改游戏文件，不提供账号、登录或充值相关功能。请自行遵守游戏服务条款。
