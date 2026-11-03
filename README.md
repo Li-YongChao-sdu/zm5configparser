@@ -151,6 +151,33 @@ python routeLookup.py --handlers
 - 工具内置的 `sniffer.crt/sniffer.key` 是它自带的本地抓包证书，仅用于该工具的 TLS 中间人，不要用于其他用途。
 - 本仓库只做离线导入和查询，不会自动启动抓包，也不修改游戏文件。
 
+### 实测记录（2026-11-03）
+
+在 Windows 上用管理员权限实测通过：
+
+1. `python routeLookup.py --sniff` 启动 `route_sniffer.exe` v1.0.4；
+2. 工具自动选中 `造梦盒子.exe`（Adobe AIR 进程），点“开始抓包”；
+3. 进入游戏触发登录、邮件、活动、商店等界面；
+4. 点右上角“停止并导出”，导出文件写入工具目录 `data/`。
+
+实测结果：
+
+- 抓包状态正常，连接数 54，业务消息 34 条；
+- 捕获到 `scene.userHandler.*`、`scene.mailHandler.*`、`scene.activity.*`、`scene.shopHandler.*` 等路由；
+- 导出文件：`data/route_dict.json`（788 条路由字典）和 `data/exports/zm5_capture_20261103_132029.json`（带参数记录）。
+
+与 FFDec 反编译的 `decompiled_v4750` 对比：
+
+- 683 条非 GM 路由完全一致；
+- `connector.entryHandler.entry/auth`、`scene.worldBossHandler.attack`、`scene.leagueHandler.attackBossCopy`、`scene.arenaHandler.applyFor`、`scene.cardHandler.*` 等关键路由两边都有；
+- 抓包多出 43 条非 GM 路由（斗宠、新活动和动态拼接），FFDec 多出 35 条旧版/废弃路由。
+
+限制：
+
+- 必须管理员权限；普通权限启动时工具窗口会隐藏或退出；
+- 工具窗口较小，导出入口在右上角“停止并导出”；
+- 抓包记录只在内存，需手动导出后 `--import`；导入器的字段映射还要用真实导出文件校准。
+
 ## 免责声明
 
 本项目仅用于学习与研究游戏配置结构，不修改游戏文件，不提供账号、登录或充值相关功能。请自行遵守游戏服务条款。
